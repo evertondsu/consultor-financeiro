@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultor Financeiro — Painel de Crescimento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & tokens ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0f1117;
+  --bg2:      #161b27;
+  --bg3:      #1e2636;
+  --bg4:      #252f42;
+  --border:   #2a3347;
+  --border2:  #364057;
+  --text1:    #eef0f6;
+  --text2:    #8a94aa;
+  --text3:    #5c6578;
+  --blue:     #3b82f6;
+  --blue-dim: rgba(59,130,246,.12);
+  --green:    #22c55e;
+  --green-dim:rgba(34,197,94,.12);
+  --amber:    #f59e0b;
+  --amber-dim:rgba(245,158,11,.12);
+  --red:      #ef4444;
+  --red-dim:  rgba(239,68,68,.12);
+  --radius:   10px;
+  --radius-sm:6px;
+  --font:     'Inter', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --sidebar-w:220px;
+}
+
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text1);
+  font-family: var(--font);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── Sidebar ──────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 100;
+  padding: 0 0 24px;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.sidebar-logo .logo-mark {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.sidebar-logo h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text1);
+  line-height: 1.3;
+}
+
+.nav-section {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text3);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  transition: all .15s;
+  border: none;
+  background: none;
+  width: calc(100% - 16px);
+  text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text1); }
+.nav-item.active { background: var(--blue-dim); color: var(--blue); }
+.nav-item .icon { font-size: 16px; flex-shrink: 0; }
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Main ─────────────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 15px; font-weight: 500; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+.content { padding: 28px; }
+
+/* ── Pages ────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Cards ────────────────────────────────────────────── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+
+/* ── Metric grid ──────────────────────────────────────── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.metric {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.metric-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.metric-value {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text1);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.metric-sub { font-size: 11px; color: var(--text3); }
+
+/* ── Grid layouts ─────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media(max-width:900px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+
+/* ── Table ────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text1);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+
+/* ── Badge ────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+.badge-amber  { background: var(--amber-dim);  color: var(--amber); }
+.badge-red    { background: var(--red-dim);    color: var(--red); }
+.badge-blue   { background: var(--blue-dim);   color: var(--blue); }
+
+/* ── Tag ──────────────────────────────────────────────── */
+.tag {
+  font-size: 10px;
+  font-family: var(--mono);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  color: var(--text2);
+}
+
+/* ── Form ─────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.field input, .field select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+  color: var(--text1);
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color .15s;
+}
+.field input:focus, .field select:focus { border-color: var(--blue); }
+.field select option { background: var(--bg3); }
+
+/* ── Buttons ──────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all .15s;
+  font-family: var(--font);
+}
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { color: var(--text1); border-color: var(--border); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid transparent; }
+.btn-danger:hover { border-color: var(--red); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 6px; }
+
+/* ── Progress ─────────────────────────────────────────── */
+.progress-item { margin-bottom: 14px; }
+.progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.progress-label { font-size: 12px; color: var(--text2); }
+.progress-pct { font-size: 12px; font-family: var(--mono); font-weight: 500; }
+.progress-track { height: 6px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
+
+/* ── Insight ──────────────────────────────────────────── */
+.insight {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.insight-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.insight b { color: var(--text1); font-weight: 500; }
+
+/* ── Slider ───────────────────────────────────────────── */
+.slider-wrap { margin-bottom: 14px; }
+.slider-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.slider-label { font-size: 12px; color: var(--text2); }
+.slider-val { font-size: 12px; font-family: var(--mono); color: var(--blue); font-weight: 500; }
+input[type=range] {
+  width: 100%;
+  accent-color: var(--blue);
+  height: 4px;
+  cursor: pointer;
+}
+
+/* ── Config modal ─────────────────────────────────────── */
+#config-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+#config-modal.open { display: flex; }
+.modal-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 480px;
+  max-width: 95vw;
+}
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+.modal-footer { display: flex; gap: 10px; margin-top: 20px; }
+
+/* ── Status bar ───────────────────────────────────────── */
+#status-bar {
+  position: fixed;
+  bottom: 16px; right: 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 150;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+#status-bar.show { opacity: 1; pointer-events: auto; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.dot.amber { background: var(--amber); }
+.dot.red { background: var(--red); }
+
+/* ── Empty state ──────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+.empty-icon { font-size: 32px; margin-bottom: 12px; }
+.empty p { font-size: 14px; margin-bottom: 4px; color: var(--text2); }
+.empty small { font-size: 12px; }
+
+/* ── Funil ────────────────────────────────────────────── */
+.funnel-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.funnel-label { font-size: 12px; color: var(--text2); width: 150px; flex-shrink: 0; }
+.funnel-track { flex: 1; height: 28px; background: var(--bg3); border-radius: var(--radius-sm); overflow: hidden; }
+.funnel-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  transition: width .5s ease;
+}
+.funnel-pct { font-size: 11px; color: var(--text3); width: 36px; text-align: right; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">CF · Painel</div>
+    <h1>Consultor<br>Financeiro</h1>
+  </div>
+
+  <div class="nav-section">Visão geral</div>
+  <button class="nav-item active" onclick="nav('dashboard',this)">
+    <span class="icon">◈</span> Dashboard
+  </button>
+
+  <div class="nav-section">Gestão</div>
+  <button class="nav-item" onclick="nav('clientes',this)">
+    <span class="icon">◎</span> Clientes
+  </button>
+  <button class="nav-item" onclick="nav('metas',this)">
+    <span class="icon">◇</span> Metas
+  </button>
+  <button class="nav-item" onclick="nav('prospeccao',this)">
+    <span class="icon">◈</span> Prospecção
+  </button>
+
+  <div class="nav-section">Ferramentas</div>
+  <button class="nav-item" onclick="nav('simulador',this)">
+    <span class="icon">⊞</span> Simulador de fee
+  </button>
+
+  <div class="sidebar-bottom">
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openConfig()">
+      ⚙ Configurar Gist
+    </button>
+    <div id="sync-status" style="text-align:center;font-size:11px;color:var(--text3);margin-top:8px">
+      Não conectado
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main ───────────────────────────────────────────── -->
+<div id="main">
+  <header class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="saveData()">💾 Salvar</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Sincronizar</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="metric-grid" id="metrics-dash"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Receita por cliente</div>
+          <canvas id="chart-receita" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso das metas</div>
+          <div id="meta-progress"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Insights</div>
+        <div id="insights"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="page-clientes" class="page">
+      <div class="card">
+        <div class="card-title">Adicionar cliente</div>
+        <div class="form-grid">
+          <div class="field"><label>Nome</label><input id="c-nome" placeholder="Nome do cliente"></div>
+          <div class="field"><label>Patrimônio investido (R$)</label><input id="c-pat" type="number" placeholder="500000" oninput="calcPreview()"></div>
+          <div class="field">
+            <label>Taxa anual</label>
+            <select id="c-taxa" onchange="toggleTaxaCustom(); calcPreview()">
+              <option value="0.5">0,5% a.a.</option>
+              <option value="0.75">0,75% a.a.</option>
+              <option value="1" selected>1,0% a.a.</option>
+              <option value="custom">Personalizada</option>
+            </select>
+          </div>
+          <div class="field" id="g-taxa-custom" style="display:none"><label>Taxa personalizada (%)</label><input id="c-taxa-custom" type="number" step="0.1" placeholder="0.8" oninput="calcPreview()"></div>
+          <div class="field">
+            <label>Status</label>
+            <select id="c-status">
+              <option>Ativo</option>
+              <option>Em negociação</option>
+              <option>Inativo</option>
+            </select>
+          </div>
+          <div class="field"><label>Segmento</label><input id="c-seg" placeholder="Ex: PF, PJ, Empresário…"></div>
+          <div class="field"><label>Início do contrato</label><input id="c-inicio" type="month"></div>
+        </div>
+        <div id="fee-preview" style="margin-bottom:14px;font-size:13px;color:var(--text2);min-height:20px"></div>
+        <button class="btn btn-primary" onclick="addCliente()">+ Adicionar cliente</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Carteira</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th><th>Patrimônio</th><th>Taxa a.a.</th>
+                <th>Mensalidade</th><th>Cobrança</th><th>Status</th><th>Desde</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tabela-clientes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- METAS -->
+    <div id="page-metas" class="page">
+      <div class="card">
+        <div class="card-title">Definir metas</div>
+        <div class="form-grid">
+          <div class="field"><label>Receita mensal alvo (R$)</label><input id="m-receita" type="number" placeholder="0" oninput="salvarMetas()"></div>
+          <div class="field"><label>Clientes ativos alvo</label><input id="m-clientes" type="number" placeholder="0" oninput="salvarMetas()"></div>
+          <div class="field"><label>AUM alvo (R$)</label><input id="m-aum" type="number" placeholder="0" oninput="salvarMetas()"></div>
+          <div class="field">
+            <label>Prazo</label>
+            <select id="m-prazo" onchange="salvarMetas()">
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+              <option value="12" selected>12 meses</option>
+              <option value="24">24 meses</option>
+            </select>
+          </div>
+          <div class="field"><label>Taxa de conversão (%)</label><input id="m-conv" type="number" value="20" oninput="salvarMetas()"></div>
+          <div class="field"><label>Patrimônio médio novo cliente (R$)</label><input id="m-pat-medio" type="number" placeholder="500000" oninput="salvarMetas()"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Situação atual vs meta</div>
+          <div id="situacao-meta"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Plano de ação</div>
+          <div id="o-que-fazer"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Projeção de receita</div>
+        <canvas id="chart-projecao" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- PROSPECCAO -->
+    <div id="page-prospeccao" class="page">
+      <div class="metric-grid" id="metrics-prosp"></div>
+      <div class="card">
+        <div class="card-title">Registrar mês</div>
+        <div class="form-grid">
+          <div class="field"><label>Mês</label><input id="p-mes" type="month"></div>
+          <div class="field"><label>Contatos / indicações</label><input id="p-contatos" type="number" placeholder="0"></div>
+          <div class="field"><label>Reuniões realizadas</label><input id="p-reunioes" type="number" placeholder="0"></div>
+          <div class="field"><label>Propostas enviadas</label><input id="p-propostas" type="number" placeholder="0"></div>
+          <div class="field"><label>Fechamentos</label><input id="p-fechamentos" type="number" placeholder="0"></div>
+          <div class="field"><label>Patrimônio captado (R$)</label><input id="p-aum" type="number" placeholder="0"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addProspeccao()">+ Registrar</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Histórico</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mês</th><th>Contatos</th><th>Reuniões</th><th>Propostas</th><th>Fechamentos</th><th>AUM captado</th><th>Conv.%</th><th></th></tr></thead>
+            <tbody id="tabela-prospeccao"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULADOR -->
+    <div id="page-simulador" class="page">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Simulador patrimônio → mensalidade</div>
+          <div class="slider-wrap">
+            <div class="slider-header">
+              <span class="slider-label">Patrimônio do cliente</span>
+              <span class="slider-val" id="s-pat-val">R$ 500.000</span>
+            </div>
+            <input type="range" min="50000" max="5000000" step="50000" value="500000" id="s-pat" oninput="simularFee()">
+          </div>
+          <div class="slider-wrap">
+            <div class="slider-header">
+              <span class="slider-label">Taxa anual</span>
+              <span class="slider-val" id="s-taxa-val">1,00%</span>
+            </div>
+            <input type="range" min="0.5" max="1.5" step="0.05" value="1" id="s-taxa" oninput="simularFee()">
+          </div>
+          <div class="metric-grid" id="fee-sim-result"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quantos clientes para uma receita?</div>
+          <div class="form-grid">
+            <div class="field"><label>Receita desejada (R$/mês)</label><input id="s-renda" type="number" placeholder="10000" oninput="simularCarteira()"></div>
+            <div class="field"><label>Patrimônio médio por cliente (R$)</label><input id="s-patmedio" type="number" placeholder="500000" oninput="simularCarteira()"></div>
+            <div class="field"><label>Taxa anual (%)</label><input id="s-taxacart" type="number" step="0.05" value="1" oninput="simularCarteira()"></div>
+          </div>
+          <div id="sim-carteira"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tabela de referência — mensalidade por patrimônio</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Patrimônio</th><th>Fee 0,5% a.a.</th><th>Fee 0,75% a.a.</th><th>Fee 1,0% a.a.</th><th>Modo</th></tr></thead>
+            <tbody id="tabela-ref"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Config Modal ─────────────────────────────────────── -->
+<div id="config-modal">
+  <div class="modal-box">
+    <div class="modal-title">Conectar ao GitHub Gist</div>
+    <div class="modal-sub">
+      Seus dados serão salvos em um Gist privado na sua conta GitHub.<br>
+      Isso permite acessar o painel de qualquer dispositivo.
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>GitHub Personal Access Token</label>
+      <input id="cfg-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Gist ID <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(deixe em branco para criar um novo)</span></label>
+      <input id="cfg-gist" placeholder="ex: a1b2c3d4e5f6...">
+    </div>
+    <details style="margin-bottom:16px">
+      <summary style="font-size:12px;color:var(--text2);cursor:pointer">Como obter o token?</summary>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.7;padding-left:4px">
+        1. Acesse <b style="color:var(--text2)">github.com → Settings → Developer settings</b><br>
+        2. Clique em <b style="color:var(--text2)">Personal access tokens → Tokens (classic)</b><br>
+        3. Clique em <b style="color:var(--text2)">Generate new token</b><br>
+        4. Marque apenas a permissão <b style="color:var(--text2)">gist</b><br>
+        5. Copie e cole o token acima
+      </div>
+    </details>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="salvarConfig()">Salvar e conectar</button>
+      <button class="btn btn-ghost" onclick="closeConfig()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Status bar ───────────────────────────────────────── -->
+<div id="status-bar"><div class="dot" id="status-dot"></div><span id="status-msg">–</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── Constants ───────────────────────────────────────────
+const MINIMO = 250;
+const GIST_FILENAME = 'consultor-financeiro-data.json';
+
+// ── State ───────────────────────────────────────────────
+let state = {
+  clientes: [],
+  prospeccoes: [],
+  metas: { receita:0, clientes:0, aum:0, prazo:12, conv:20, patMedio:500000 }
+};
+let cfg = { token:'', gistId:'' };
+let chartReceita=null, chartProjecao=null;
+let statusTimer=null;
+
+// ── Helpers ─────────────────────────────────────────────
+const fmtR = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const fmtAum = v => v >= 1e6 ? 'R$ ' + (v/1e6).toFixed(2).replace('.',',') + 'M' : fmtR(v);
+const calcFee = (pat, taxa) => Math.max(MINIMO, pat * (taxa/100) / 12);
+const modoCobranca = (pat, taxa) => (pat*(taxa/100)/12) >= MINIMO ? `${taxa}% a.a.` : 'Mínimo R$ 250';
+
+function getTaxa() {
+  const sel = document.getElementById('c-taxa').value;
+  return sel === 'custom' ? parseFloat(document.getElementById('c-taxa-custom').value)||0 : parseFloat(sel);
+}
+
+function showStatus(msg, type='ok') {
+  const bar = document.getElementById('status-bar');
+  const dot = document.getElementById('status-dot');
+  document.getElementById('status-msg').textContent = msg;
+  dot.className = 'dot' + (type==='err'?' red':type==='warn'?' amber':'');
+  bar.classList.add('show');
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => bar.classList.remove('show'), 3500);
+}
+
+// ── Navigation ───────────────────────────────────────────
+const pageTitles = {
+  dashboard:'Dashboard', clientes:'Clientes', metas:'Metas',
+  prospeccao:'Prospecção', simulador:'Simulador de fee'
+};
+function nav(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[page];
+  renderAll();
+}
+
+// ── Config / Gist ─────────────────────────────────────────
+function openConfig() {
+  document.getElementById('cfg-token').value = cfg.token || '';
+  document.getElementById('cfg-gist').value  = cfg.gistId || '';
+  document.getElementById('config-modal').classList.add('open');
+}
+function closeConfig() {
+  document.getElementById('config-modal').classList.remove('open');
+}
+
+async function salvarConfig() {
+  const token = document.getElementById('cfg-token').value.trim();
+  const gistId = document.getElementById('cfg-gist').value.trim();
+  if (!token) { alert('Informe o token.'); return; }
+  cfg.token = token;
+  cfg.gistId = gistId;
+  localStorage.setItem('cf_cfg', JSON.stringify(cfg));
+  updateSyncStatus();
+  closeConfig();
+  await loadData();
+}
+
+function updateSyncStatus() {
+  const el = document.getElementById('sync-status');
+  el.textContent = cfg.token ? (cfg.gistId ? '● Conectado ao Gist' : '○ Token OK, sem Gist') : 'Não conectado';
+  el.style.color = cfg.token ? 'var(--green)' : 'var(--text3)';
+}
+
+// ── Save / Load ───────────────────────────────────────────
+async function saveData() {
+  // Always save locally
+  localStorage.setItem('cf_data', JSON.stringify(state));
+
+  if (!cfg.token) {
+    showStatus('Salvo localmente (sem Gist configurado)', 'warn');
+    return;
+  }
+
+  showStatus('Salvando no Gist…', 'warn');
+  const body = {
+    description: 'Consultor Financeiro — dados do painel',
+    public: false,
+    files: { [GIST_FILENAME]: { content: JSON.stringify(state, null, 2) } }
+  };
+
+  try {
+    let res;
+    if (cfg.gistId) {
+      res = await fetch(`https://api.github.com/gists/${cfg.gistId}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${cfg.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } else {
+      res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${cfg.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        cfg.gistId = data.id;
+        localStorage.setItem('cf_cfg', JSON.stringify(cfg));
+        document.getElementById('sync-status').textContent = '● Conectado ao Gist';
+      }
+    }
+    if (res.ok) showStatus('Dados salvos no Gist ✓');
+    else showStatus('Erro ao salvar no Gist', 'err');
+  } catch(e) {
+    showStatus('Falha de rede ao salvar', 'err');
+  }
+}
+
+async function loadData() {
+  // Load from Gist if configured
+  if (cfg.token && cfg.gistId) {
+    showStatus('Carregando do Gist…', 'warn');
+    try {
+      const res = await fetch(`https://api.github.com/gists/${cfg.gistId}`, {
+        headers: { 'Authorization': `Bearer ${cfg.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.files[GIST_FILENAME]?.content;
+        if (content) {
+          state = JSON.parse(content);
+          localStorage.setItem('cf_data', JSON.stringify(state));
+          showStatus('Dados sincronizados ✓');
+          renderAll();
+          return;
+        }
+      } else {
+        showStatus('Erro ao carregar do Gist', 'err');
+      }
+    } catch(e) {
+      showStatus('Falha de rede — carregando cache local', 'warn');
+    }
+  }
+
+  // Fallback to localStorage
+  const local = localStorage.getItem('cf_data');
+  if (local) {
+    state = JSON.parse(local);
+    showStatus('Dados carregados do cache local', 'warn');
+  }
+  renderAll();
+}
+
+// ── Add / Remove ──────────────────────────────────────────
+function toggleTaxaCustom() {
+  document.getElementById('g-taxa-custom').style.display =
+    document.getElementById('c-taxa').value === 'custom' ? '' : 'none';
+}
+
+function calcPreview() {
+  const pat = parseFloat(document.getElementById('c-pat').value)||0;
+  const taxa = getTaxa();
+  if (!pat || !taxa) { document.getElementById('fee-preview').innerHTML=''; return; }
+  const fee = calcFee(pat, taxa);
+  const byPct = pat*(taxa/100)/12;
+  const isMin = byPct < MINIMO;
+  document.getElementById('fee-preview').innerHTML =
+    `Mensalidade calculada: <b style="color:var(--text1)">${fmtR(fee)}</b>
+     <span class="tag">${isMin?'Mínimo R$ 250':taxa+'% a.a.'}</span>
+     ${isMin ? `<span style="color:var(--text3);font-size:12px"> — percentual seria ${fmtR(byPct)}</span>` : ''}`;
+}
+
+function addCliente() {
+  const nome = document.getElementById('c-nome').value.trim();
+  const pat  = parseFloat(document.getElementById('c-pat').value)||0;
+  const taxa = getTaxa();
+  if (!nome || !pat || !taxa) { alert('Preencha nome, patrimônio e taxa.'); return; }
+  state.clientes.push({
+    id: Date.now(),
+    nome, pat, taxa,
+    fee: calcFee(pat, taxa),
+    status: document.getElementById('c-status').value,
+    seg: document.getElementById('c-seg').value.trim()||'—',
+    inicio: document.getElementById('c-inicio').value
+  });
+  ['c-nome','c-pat','c-taxa-custom'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('c-taxa').value = '1';
+  document.getElementById('g-taxa-custom').style.display = 'none';
+  document.getElementById('fee-preview').innerHTML = '';
+  saveData(); renderAll();
+}
+
+function removeCliente(id) {
+  if (!confirm('Remover este cliente?')) return;
+  state.clientes = state.clientes.filter(c => c.id !== id);
+  saveData(); renderAll();
+}
+
+function salvarMetas() {
+  state.metas.receita  = parseFloat(document.getElementById('m-receita').value)||0;
+  state.metas.clientes = parseInt(document.getElementById('m-clientes').value)||0;
+  state.metas.aum      = parseFloat(document.getElementById('m-aum').value)||0;
+  state.metas.prazo    = parseInt(document.getElementById('m-prazo').value)||12;
+  state.metas.conv     = parseFloat(document.getElementById('m-conv').value)||20;
+  state.metas.patMedio = parseFloat(document.getElementById('m-pat-medio').value)||500000;
+  saveData(); renderAll();
+}
+
+function addProspeccao() {
+  const mes = document.getElementById('p-mes').value; if(!mes) return;
+  state.prospeccoes = state.prospeccoes.filter(p => p.mes !== mes);
+  state.prospeccoes.push({
+    mes,
+    contatos:   parseInt(document.getElementById('p-contatos').value)||0,
+    reunioes:   parseInt(document.getElementById('p-reunioes').value)||0,
+    propostas:  parseInt(document.getElementById('p-propostas').value)||0,
+    fechamentos:parseInt(document.getElementById('p-fechamentos').value)||0,
+    aum:        parseFloat(document.getElementById('p-aum').value)||0
+  });
+  state.prospeccoes.sort((a,b) => a.mes < b.mes ? -1 : 1);
+  saveData(); renderAll();
+}
+
+function removeProsp(mes) {
+  state.prospeccoes = state.prospeccoes.filter(p => p.mes !== mes);
+  saveData(); renderAll();
+}
+
+// ── Render ────────────────────────────────────────────────
+function renderAll() {
+  const ativos = state.clientes.filter(c => c.status === 'Ativo');
+  const receitaTotal = ativos.reduce((s,c) => s+c.fee, 0);
+  const aumTotal     = ativos.reduce((s,c) => s+c.pat, 0);
+  const ticketMedio  = ativos.length ? receitaTotal/ativos.length : 0;
+  const m = state.metas;
+
+  // ── Dashboard metrics ──
+  const md = document.getElementById('metrics-dash');
+  if (md) {
+    const pctR = m.receita > 0 ? ((receitaTotal/m.receita)*100).toFixed(0)+'%' : '–';
+    md.innerHTML = `
+      <div class="metric"><div class="metric-label">Clientes ativos</div><div class="metric-value">${ativos.length}</div><div class="metric-sub">${state.clientes.length} total</div></div>
+      <div class="metric"><div class="metric-label">Receita mensal</div><div class="metric-value">${fmtR(receitaTotal)}</div><div class="metric-sub">${pctR} da meta</div></div>
+      <div class="metric"><div class="metric-label">AUM sob gestão</div><div class="metric-value">${fmtAum(aumTotal)}</div></div>
+      <div class="metric"><div class="metric-label">Fee médio / cliente</div><div class="metric-value">${fmtR(ticketMedio)}</div></div>
+      <div class="metric"><div class="metric-label">AUM médio / cliente</div><div class="metric-value">${ativos.length?fmtAum(aumTotal/ativos.length):'–'}</div></div>
+    `;
+  }
+
+  // ── Progress metas ──
+  const mp = document.getElementById('meta-progress');
+  if (mp) {
+    const items = [
+      {label:'Receita', cur:receitaTotal, meta:m.receita, color:'var(--blue)'},
+      {label:'Clientes', cur:ativos.length, meta:m.clientes, color:'var(--green)'},
+      {label:'AUM', cur:aumTotal, meta:m.aum, color:'var(--amber)'},
+    ].filter(i => i.meta > 0);
+    if (items.length === 0) {
+      mp.innerHTML = '<div style="font-size:13px;color:var(--text3)">Defina suas metas na aba Metas.</div>';
+    } else {
+      mp.innerHTML = items.map(i => {
+        const pct = Math.min(100, Math.round((i.cur/i.meta)*100));
+        const color = pct >= 100 ? 'var(--green)' : i.color;
+        return `<div class="progress-item">
+          <div class="progress-header">
+            <span class="progress-label">${i.label}</span>
+            <span class="progress-pct" style="color:${color}">${pct}%</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Insights ──
+  const ins = document.getElementById('insights');
+  if (ins) {
+    const arr = [];
+    if (m.receita > 0 && receitaTotal < m.receita) {
+      const falta = m.receita - receitaTotal;
+      const feePorCliente = calcFee(m.patMedio||500000, 1);
+      const clsNec = Math.ceil(falta/feePorCliente);
+      arr.push({icon:'📈', txt:`Faltam <b>${fmtR(falta)}/mês</b> para atingir a meta de receita — equivale a captar aprox. <b>${clsNec} novo(s) cliente(s)</b> com patrimônio médio de ${fmtR(m.patMedio||500000)}.`});
+    }
+    const negoc = state.clientes.filter(c => c.status === 'Em negociação');
+    if (negoc.length > 0) {
+      arr.push({icon:'🤝', txt:`<b>${negoc.length} cliente(s) em negociação</b>. Fechar todos adicionaria <b>${fmtR(negoc.reduce((s,c)=>s+c.fee,0))}/mês</b> e ${fmtAum(negoc.reduce((s,c)=>s+c.pat,0))} em AUM.`});
+    }
+    const minimoClientes = ativos.filter(c => (c.pat*(c.taxa/100)/12) < MINIMO);
+    if (minimoClientes.length > 0) {
+      arr.push({icon:'💡', txt:`<b>${minimoClientes.length} cliente(s)</b> pagam o mínimo de R$ 250. Com crescimento de patrimônio eles passarão para a cobrança percentual.`});
+    }
+    if (m.receita > 0 && receitaTotal >= m.receita) {
+      arr.push({icon:'🎉', txt:`<b>Meta de receita atingida!</b> Hora de elevar o alvo.`});
+    }
+    if (arr.length === 0) arr.push({icon:'👋', txt:'Adicione clientes e defina metas para ver insights personalizados aqui.'});
+    ins.innerHTML = arr.map(a => `<div class="insight"><span class="insight-icon">${a.icon}</span><span>${a.txt}</span></div>`).join('');
+  }
+
+  // ── Tabela clientes ──
+  const tc = document.getElementById('tabela-clientes');
+  if (tc) {
+    if (state.clientes.length === 0) {
+      tc.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">◎</div><p>Nenhum cliente cadastrado ainda.</p><small>Use o formulário acima para adicionar.</small></div></td></tr>`;
+    } else {
+      tc.innerHTML = state.clientes.map(c => {
+        const bClass = c.status==='Ativo'?'badge-green':c.status==='Em negociação'?'badge-amber':'badge-red';
+        return `<tr>
+          <td><b>${c.nome}</b><br><span style="font-size:11px;color:var(--text3)">${c.seg}</span></td>
+          <td style="font-family:var(--mono)">${fmtAum(c.pat)}</td>
+          <td style="font-family:var(--mono)">${c.taxa}%</td>
+          <td style="font-family:var(--mono);font-weight:500;color:var(--text1)">${fmtR(c.fee)}</td>
+          <td><span class="tag">${modoCobranca(c.pat,c.taxa)}</span></td>
+          <td><span class="badge ${bClass}">${c.status}</span></td>
+          <td style="color:var(--text3)">${c.inicio||'—'}</td>
+          <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeCliente(${c.id})">✕</button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // ── Metas: situação ──
+  const sm = document.getElementById('situacao-meta');
+  if (sm) {
+    const rows = [
+      {label:'Receita mensal', cur:fmtR(receitaTotal), meta:fmtR(m.receita), ok:m.receita>0&&receitaTotal>=m.receita, hasMeta:m.receita>0},
+      {label:'Clientes ativos', cur:ativos.length, meta:m.clientes, ok:m.clientes>0&&ativos.length>=m.clientes, hasMeta:m.clientes>0},
+      {label:'AUM total', cur:fmtAum(aumTotal), meta:fmtAum(m.aum), ok:m.aum>0&&aumTotal>=m.aum, hasMeta:m.aum>0},
+    ];
+    sm.innerHTML = rows.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;color:var(--text2)">${r.label}</span>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-weight:500">${r.cur}</div>
+          ${r.hasMeta
+            ? `<div style="font-size:11px;color:var(--text3)">Meta: ${r.meta} <span style="color:${r.ok?'var(--green)':'var(--red)'}">${r.ok?'✓':'✗'}</span></div>`
+            : `<div style="font-size:11px;color:var(--text3)">Sem meta</div>`}
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Plano de ação ──
+  const oqf = document.getElementById('o-que-fazer');
+  if (oqf) {
+    if (m.receita > 0) {
+      const faltaR = Math.max(0, m.receita - receitaTotal);
+      const feePorCliente = calcFee(m.patMedio||500000, 1);
+      const novosCliMes = faltaR > 0 && feePorCliente > 0 ? Math.ceil(faltaR/feePorCliente/m.prazo) : 0;
+      const contatosMes = m.conv > 0 && novosCliMes > 0 ? Math.ceil(novosCliMes/(m.conv/100)) : 0;
+      const faltaC = Math.max(0, m.clientes - ativos.length);
+      const faltaAum = Math.max(0, m.aum - aumTotal);
+      const acoes = [];
+      if (faltaR > 0) acoes.push({icon:'💰', txt:`Captar <b>${fmtR(faltaR)}/mês</b> adicionais`});
+      if (novosCliMes > 0) acoes.push({icon:'👤', txt:`Fechar <b>${novosCliMes} novo(s) cliente(s)/mês</b>`});
+      if (contatosMes > 0) acoes.push({icon:'📞', txt:`Fazer <b>${contatosMes} contatos/mês</b> (conv. ${m.conv}%)`});
+      if (faltaC > 0) acoes.push({icon:'📋', txt:`Adicionar <b>${faltaC} clientes</b> à carteira`});
+      if (faltaAum > 0) acoes.push({icon:'📊', txt:`Captar <b>${fmtAum(faltaAum)}</b> em patrimônio`});
+      if (acoes.length === 0) acoes.push({icon:'✅', txt:`<b>Todas as metas atingidas!</b>`});
+      oqf.innerHTML = `<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Próximos ${m.prazo} meses</div>` +
+        acoes.map(a => `<div class="insight"><span class="insight-icon">${a.icon}</span><span>${a.txt}</span></div>`).join('');
+    } else {
+      oqf.innerHTML = '<div style="font-size:13px;color:var(--text3)">Configure suas metas acima.</div>';
+    }
+  }
+
+  // ── Prospecção metrics ──
+  const mp2 = document.getElementById('metrics-prosp');
+  if (mp2) {
+    if (state.prospeccoes.length > 0) {
+      const totalFech = state.prospeccoes.reduce((s,p)=>s+p.fechamentos,0);
+      const totalAum  = state.prospeccoes.reduce((s,p)=>s+p.aum,0);
+      const totalCont = state.prospeccoes.reduce((s,p)=>s+p.contatos,0);
+      const convGeral = totalCont > 0 ? ((totalFech/totalCont)*100).toFixed(1)+'%' : '—';
+      const last = state.prospeccoes[state.prospeccoes.length-1];
+      mp2.innerHTML = `
+        <div class="metric"><div class="metric-label">Fechamentos totais</div><div class="metric-value">${totalFech}</div></div>
+        <div class="metric"><div class="metric-label">AUM captado</div><div class="metric-value">${fmtAum(totalAum)}</div></div>
+        <div class="metric"><div class="metric-label">Conv. geral</div><div class="metric-value">${convGeral}</div></div>
+        <div class="metric"><div class="metric-label">Último registro</div><div class="metric-value">${last.fechamentos} fech.</div><div class="metric-sub">${last.mes}</div></div>
+      `;
+    } else { mp2.innerHTML = ''; }
+  }
+
+  // ── Tabela prospecção ──
+  const tp = document.getElementById('tabela-prospeccao');
+  if (tp) {
+    if (state.prospeccoes.length === 0) {
+      tp.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">◈</div><p>Nenhum registro ainda.</p><small>Registre sua atividade mensal acima.</small></div></td></tr>`;
+    } else {
+      tp.innerHTML = [...state.prospeccoes].reverse().map(p => {
+        const conv = p.contatos > 0 ? ((p.fechamentos/p.contatos)*100).toFixed(1)+'%' : '—';
+        return `<tr>
+          <td style="font-family:var(--mono)">${p.mes}</td>
+          <td>${p.contatos}</td><td>${p.reunioes}</td><td>${p.propostas}</td><td>${p.fechamentos}</td>
+          <td style="font-family:var(--mono)">${p.aum>0?fmtAum(p.aum):'—'}</td>
+          <td style="font-family:var(--mono)">${conv}</td>
+          <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeProsp('${p.mes}')">✕</button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // ── Tabela referência ──
+  const tr = document.getElementById('tabela-ref');
+  if (tr) {
+    const pats = [100000,200000,300000,500000,750000,1000000,2000000,5000000];
+    tr.innerHTML = pats.map(p => {
+      const f05=calcFee(p,.5), f075=calcFee(p,.75), f1=calcFee(p,1);
+      const modo = f1 === MINIMO ? '<span class="badge badge-amber">Mínimo</span>' : '<span class="badge badge-blue">% a.a.</span>';
+      return `<tr>
+        <td style="font-family:var(--mono);font-weight:500">${fmtAum(p)}</td>
+        <td style="font-family:var(--mono)">${fmtR(f05)}</td>
+        <td style="font-family:var(--mono)">${fmtR(f075)}</td>
+        <td style="font-family:var(--mono);font-weight:500">${fmtR(f1)}</td>
+        <td>${modo}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Metas form sync ──
+  const mf = {receita:'m-receita',clientes:'m-clientes',aum:'m-aum',prazo:'m-prazo',conv:'m-conv',patMedio:'m-pat-medio'};
+  Object.entries(mf).forEach(([k,id]) => { const el=document.getElementById(id); if(el&&!el.matches(':focus')) el.value=state.metas[k]||''; });
+
+  renderCharts(receitaTotal, ativos);
+}
+
+// ── Charts ────────────────────────────────────────────────
+function renderCharts(receitaTotal, ativos) {
+  const gridColor  = 'rgba(255,255,255,0.05)';
+  const textColor  = '#5c6578';
+  const tickCb     = v => 'R$'+Math.round(v).toLocaleString('pt-BR');
+
+  // Receita por cliente
+  const cr = document.getElementById('chart-receita');
+  if (cr) {
+    if (chartReceita) { chartReceita.destroy(); chartReceita=null; }
+    if (ativos.length > 0) {
+      const palette = ['#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#10b981'];
+      chartReceita = new Chart(cr, {
+        type: 'bar',
+        data: {
+          labels: ativos.map(c => c.nome),
+          datasets: [{ data: ativos.map(c => c.fee), backgroundColor: ativos.map((_,i)=>palette[i%palette.length]), borderRadius: 6, borderSkipped: false }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{
+            y:{ grid:{color:gridColor}, ticks:{color:textColor,callback:tickCb}, border:{display:false} },
+            x:{ grid:{display:false}, ticks:{color:textColor}, border:{display:false} }
+          }
+        }
+      });
+    } else {
+      const ctx = cr.getContext('2d');
+      ctx.clearRect(0,0,cr.width,cr.height);
+    }
+  }
+
+  // Projeção
+  const cp = document.getElementById('chart-projecao');
+  if (cp) {
+    if (chartProjecao) { chartProjecao.destroy(); chartProjecao=null; }
+    if (state.metas.receita > 0) {
+      const prazo = state.metas.prazo;
+      const labels = Array.from({length:prazo+1},(_,i)=>'M'+i);
+      const crescMes = (state.metas.receita - receitaTotal) / prazo;
+      chartProjecao = new Chart(cp, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label:'Projeção', borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.08)',
+              data: labels.map((_,i)=>Math.max(0,Math.round(receitaTotal+crescMes*i))),
+              tension:.35, fill:true, borderWidth:2, pointRadius:3, pointBackgroundColor:'#3b82f6'
+            },
+            {
+              label:'Meta', borderColor:'#ef4444', borderDash:[6,4], borderWidth:1.5,
+              data: labels.map(()=>state.metas.receita), pointRadius:0, fill:false
+            }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{
+            y:{ grid:{color:gridColor}, ticks:{color:textColor,callback:tickCb}, border:{display:false} },
+            x:{ grid:{display:false}, ticks:{color:textColor}, border:{display:false} }
+          }
+        }
+      });
+    }
+  }
+}
+
+// ── Simulador ─────────────────────────────────────────────
+function simularFee() {
+  const pat  = parseInt(document.getElementById('s-pat').value);
+  const taxa = parseFloat(document.getElementById('s-taxa').value);
+  document.getElementById('s-pat-val').textContent  = 'R$ ' + pat.toLocaleString('pt-BR');
+  document.getElementById('s-taxa-val').textContent = taxa.toFixed(2).replace('.',',') + '%';
+  const fee    = calcFee(pat, taxa);
+  const byPct  = pat*(taxa/100)/12;
+  const isMin  = byPct < MINIMO;
+  const limiar = (MINIMO*12/taxa*100);
+  document.getElementById('fee-sim-result').innerHTML = `
+    <div class="metric"><div class="metric-label">Mensalidade</div><div class="metric-value">${fmtR(fee)}</div><div class="metric-sub">${isMin?'Mínimo contratual':taxa+'% a.a.'}</div></div>
+    <div class="metric"><div class="metric-label">Fee pelo %</div><div class="metric-value">${fmtR(byPct)}</div><div class="metric-sub">${isMin?'Abaixo do mínimo':''}</div></div>
+    <div class="metric"><div class="metric-label">Receita anual</div><div class="metric-value">${fmtR(fee*12)}</div></div>
+    <div class="metric"><div class="metric-label">Limiar do mínimo</div><div class="metric-value">${fmtAum(limiar)}</div><div class="metric-sub">patrimônio p/ sair do mín.</div></div>
+  `;
+}
+
+function simularCarteira() {
+  const renda    = parseFloat(document.getElementById('s-renda').value)||0;
+  const patMedio = parseFloat(document.getElementById('s-patmedio').value)||500000;
+  const taxa     = parseFloat(document.getElementById('s-taxacart').value)||1;
+  const sc = document.getElementById('sim-carteira'); if(!sc) return;
+  if (!renda || !patMedio) { sc.innerHTML=''; return; }
+  const feePorCliente = calcFee(patMedio, taxa);
+  const nClientes     = Math.ceil(renda/feePorCliente);
+  const aumNec        = nClientes * patMedio;
+  sc.innerHTML = `<div class="metric-grid" style="margin-top:12px">
+    <div class="metric"><div class="metric-label">Clientes necessários</div><div class="metric-value">${nClientes}</div></div>
+    <div class="metric"><div class="metric-label">AUM necessário</div><div class="metric-value">${fmtAum(aumNec)}</div></div>
+    <div class="metric"><div class="metric-label">Fee médio / cliente</div><div class="metric-value">${fmtR(feePorCliente)}</div></div>
+  </div>`;
+}
+
+// ── Init ──────────────────────────────────────────────────
+(function init() {
+  const savedCfg = localStorage.getItem('cf_cfg');
+  if (savedCfg) cfg = JSON.parse(savedCfg);
+  updateSyncStatus();
+  loadData();
+  simularFee();
+})();
+</script>
+</body>
+</html>
