@@ -409,9 +409,85 @@ input[type=range] {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+/* ── Login ────────────────────────────────────────────── */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#login-screen.hidden { display: none; }
+.login-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  width: 360px;
+  max-width: 95vw;
+  text-align: center;
+}
+.login-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.login-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+.login-field { position: relative; margin-bottom: 14px; }
+.login-field input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 11px 40px 11px 14px;
+  color: var(--text1);
+  font-size: 15px;
+  font-family: var(--font);
+  outline: none;
+  text-align: center;
+  letter-spacing: .1em;
+  transition: border-color .15s;
+}
+.login-field input:focus { border-color: var(--blue); }
+.login-field .eye {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer; color: var(--text3); font-size: 16px; user-select: none;
+}
+.login-error { font-size: 12px; color: var(--red); margin-bottom: 14px; min-height: 18px; }
+.login-btn {
+  width: 100%; padding: 11px;
+  background: var(--blue); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  font-family: var(--font); transition: background .15s;
+}
+.login-btn:hover { background: #2563eb; }
 </style>
 </head>
 <body>
+
+<!-- ── Login Screen ──────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">CF · Painel</div>
+    <div class="login-title">Consultor Financeiro</div>
+    <div class="login-sub">Digite sua senha para acessar</div>
+    <div class="login-field">
+      <input id="login-input" type="password" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')tentarLogin()">
+      <span class="eye" onclick="toggleSenha()">👁</span>
+    </div>
+    <div class="login-error" id="login-erro"></div>
+    <button class="login-btn" onclick="tentarLogin()">Entrar</button>
+  </div>
+</div>
 
 <!-- ── Sidebar ─────────────────────────────────────────── -->
 <nav id="sidebar">
@@ -1209,12 +1285,126 @@ function simularCarteira() {
   </div>`;
 }
 
+// ── Login ─────────────────────────────────────────────────
+function hashSenha(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  }
+  return Math.abs(h).toString(36);
+}
+
+const SENHA_CORRETA = hashSenha('1105Janela!');
+const MAX_TENTATIVAS = 3;
+const BLOQUEIO_MS = 24 * 60 * 60 * 1000; // 24 horas
+
+function getBloqueio() {
+  const b = localStorage.getItem('cf_bloqueio');
+  return b ? JSON.parse(b) : { tentativas: 0, bloqueadoAte: null };
+}
+
+function setBloqueio(dados) {
+  localStorage.setItem('cf_bloqueio', JSON.stringify(dados));
+}
+
+function verificarBloqueio() {
+  const b = getBloqueio();
+  if (b.bloqueadoAte && Date.now() < b.bloqueadoAte) {
+    const restante = b.bloqueadoAte - Date.now();
+    const horas = Math.floor(restante / 3600000);
+    const minutos = Math.floor((restante % 3600000) / 60000);
+    mostrarBloqueio(horas, minutos);
+    return true;
+  }
+  // Se o bloqueio expirou, limpa
+  if (b.bloqueadoAte && Date.now() >= b.bloqueadoAte) {
+    setBloqueio({ tentativas: 0, bloqueadoAte: null });
+  }
+  return false;
+}
+
+function mostrarBloqueio(horas, minutos) {
+  document.getElementById('login-input').disabled = true;
+  document.querySelector('.login-btn').disabled = true;
+  document.querySelector('.login-btn').style.opacity = '0.4';
+  document.getElementById('login-erro').innerHTML =
+    `🔒 Acesso bloqueado por tentativas incorretas.<br>
+     <span style="color:var(--text3)">Tente novamente em ${horas}h ${minutos}min.</span>`;
+
+  // Atualiza o contador a cada minuto
+  setTimeout(() => {
+    const b = getBloqueio();
+    if (b.bloqueadoAte && Date.now() < b.bloqueadoAte) {
+      const restante = b.bloqueadoAte - Date.now();
+      const h = Math.floor(restante / 3600000);
+      const m = Math.floor((restante % 3600000) / 60000);
+      mostrarBloqueio(h, m);
+    } else {
+      // Desbloqueou
+      document.getElementById('login-input').disabled = false;
+      document.querySelector('.login-btn').disabled = false;
+      document.querySelector('.login-btn').style.opacity = '1';
+      document.getElementById('login-erro').textContent = '';
+      setBloqueio({ tentativas: 0, bloqueadoAte: null });
+    }
+  }, 60000);
+}
+
+function tentarLogin() {
+  if (verificarBloqueio()) return;
+
+  const val = document.getElementById('login-input').value;
+  const erro = document.getElementById('login-erro');
+  const b = getBloqueio();
+
+  if (hashSenha(val) === SENHA_CORRETA) {
+    setBloqueio({ tentativas: 0, bloqueadoAte: null });
+    sessionStorage.setItem('cf_auth', SENHA_CORRETA);
+    document.getElementById('login-screen').classList.add('hidden');
+    erro.textContent = '';
+    loadData();
+  } else {
+    const novasTentativas = b.tentativas + 1;
+    const restantes = MAX_TENTATIVAS - novasTentativas;
+
+    if (novasTentativas >= MAX_TENTATIVAS) {
+      const bloqueadoAte = Date.now() + BLOQUEIO_MS;
+      setBloqueio({ tentativas: novasTentativas, bloqueadoAte });
+      mostrarBloqueio(24, 0);
+    } else {
+      setBloqueio({ tentativas: novasTentativas, bloqueadoAte: null });
+      erro.textContent = `Senha incorreta. Você tem mais ${restantes} tentativa(s).`;
+    }
+
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-input').focus();
+  }
+}
+
+function toggleSenha() {
+  const input = document.getElementById('login-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function verificarAuth() {
+  const auth = sessionStorage.getItem('cf_auth');
+  if (auth === SENHA_CORRETA) {
+    document.getElementById('login-screen').classList.add('hidden');
+    return true;
+  }
+  verificarBloqueio();
+  document.getElementById('login-input').focus();
+  return false;
+}
+
 // ── Init ──────────────────────────────────────────────────
 (function init() {
   const savedCfg = localStorage.getItem('cf_cfg');
   if (savedCfg) cfg = JSON.parse(savedCfg);
   updateSyncStatus();
-  loadData();
+  if (verificarAuth()) {
+    loadData();
+  }
   simularFee();
 })();
 </script>
