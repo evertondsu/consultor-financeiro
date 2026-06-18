@@ -545,7 +545,9 @@ input[type=range] {
       <div class="grid-2">
         <div class="card">
           <div class="card-title">Receita por cliente</div>
-          <canvas id="chart-receita" height="200"></canvas>
+          <div style="position:relative;height:220px;width:100%">
+            <canvas id="chart-receita"></canvas>
+          </div>
         </div>
         <div class="card">
           <div class="card-title">Progresso das metas</div>
@@ -638,7 +640,9 @@ input[type=range] {
       </div>
       <div class="card">
         <div class="card-title">Projeção de receita</div>
-        <canvas id="chart-projecao" height="200"></canvas>
+        <div style="position:relative;height:220px;width:100%">
+          <canvas id="chart-projecao"></canvas>
+        </div>
       </div>
     </div>
 
@@ -1190,37 +1194,50 @@ function renderCharts(receitaTotal, ativos) {
   // Receita por cliente
   const cr = document.getElementById('chart-receita');
   if (cr) {
-    if (chartReceita) { chartReceita.destroy(); chartReceita=null; }
+    if (chartReceita) { chartReceita.destroy(); chartReceita = null; }
     if (ativos.length > 0) {
       const palette = ['#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#10b981'];
       chartReceita = new Chart(cr, {
         type: 'bar',
         data: {
           labels: ativos.map(c => c.nome),
-          datasets: [{ data: ativos.map(c => c.fee), backgroundColor: ativos.map((_,i)=>palette[i%palette.length]), borderRadius: 6, borderSkipped: false }]
+          datasets: [{
+            data: ativos.map(c => c.fee),
+            backgroundColor: ativos.map((_, i) => palette[i % palette.length]),
+            borderRadius: 6,
+            borderSkipped: false
+          }]
         },
         options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:false} },
-          scales:{
-            y:{ grid:{color:gridColor}, ticks:{color:textColor,callback:tickCb}, border:{display:false} },
-            x:{ grid:{display:false}, ticks:{color:textColor}, border:{display:false} }
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 300 },
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, callback: tickCb },
+              border: { display: false }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor },
+              border: { display: false }
+            }
           }
         }
       });
-    } else {
-      const ctx = cr.getContext('2d');
-      ctx.clearRect(0,0,cr.width,cr.height);
     }
   }
 
   // Projeção
   const cp = document.getElementById('chart-projecao');
   if (cp) {
-    if (chartProjecao) { chartProjecao.destroy(); chartProjecao=null; }
+    if (chartProjecao) { chartProjecao.destroy(); chartProjecao = null; }
     if (state.metas.receita > 0) {
       const prazo = state.metas.prazo;
-      const labels = Array.from({length:prazo+1},(_,i)=>'M'+i);
+      const labels = Array.from({length: prazo + 1}, (_, i) => 'M' + i);
       const crescMes = (state.metas.receita - receitaTotal) / prazo;
       chartProjecao = new Chart(cp, {
         type: 'line',
@@ -1228,22 +1245,40 @@ function renderCharts(receitaTotal, ativos) {
           labels,
           datasets: [
             {
-              label:'Projeção', borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.08)',
-              data: labels.map((_,i)=>Math.max(0,Math.round(receitaTotal+crescMes*i))),
-              tension:.35, fill:true, borderWidth:2, pointRadius:3, pointBackgroundColor:'#3b82f6'
+              label: 'Projeção',
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59,130,246,0.08)',
+              data: labels.map((_, i) => Math.max(0, Math.round(receitaTotal + crescMes * i))),
+              tension: .35, fill: true, borderWidth: 2,
+              pointRadius: 3, pointBackgroundColor: '#3b82f6'
             },
             {
-              label:'Meta', borderColor:'#ef4444', borderDash:[6,4], borderWidth:1.5,
-              data: labels.map(()=>state.metas.receita), pointRadius:0, fill:false
+              label: 'Meta',
+              borderColor: '#ef4444',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              data: labels.map(() => state.metas.receita),
+              pointRadius: 0, fill: false
             }
           ]
         },
         options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:false} },
-          scales:{
-            y:{ grid:{color:gridColor}, ticks:{color:textColor,callback:tickCb}, border:{display:false} },
-            x:{ grid:{display:false}, ticks:{color:textColor}, border:{display:false} }
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 300 },
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor, callback: tickCb },
+              border: { display: false }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor },
+              border: { display: false }
+            }
           }
         }
       });
